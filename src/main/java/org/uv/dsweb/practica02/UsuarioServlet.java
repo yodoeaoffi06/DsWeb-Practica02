@@ -13,34 +13,33 @@ public class UsuarioServlet extends HttpServlet {
     private UsuarioDAO usuarioDAO = new UsuarioDAO();
 
     @Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String action = request.getParameter("action");
-    try {
-        if ("eliminar".equals(action)) {
-            int id = Integer.parseInt(request.getParameter("id"));
-            usuarioDAO.eliminarUsuario(id);
-            response.sendRedirect("usuarios?mensaje=Usuario eliminado con éxito");
-        } else if ("editar".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr != null && !idStr.isEmpty()) {
-                int id = Integer.parseInt(idStr);
-                Usuario usuario = usuarioDAO.obtenerUsuarioPorId(id); // Método para obtener el usuario
-                request.setAttribute("usuario", usuario);
-                request.getRequestDispatcher("/editarUsuario.jsp").forward(request, response);
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        try {
+            if ("eliminar".equals(action)) {
+                int id = Integer.parseInt(request.getParameter("id"));
+                usuarioDAO.eliminarUsuario(id);
+                response.sendRedirect("usuarios?mensaje=Usuario eliminado con éxito");
+            } else if ("editar".equals(action)) {
+                String idStr = request.getParameter("id");
+                if (idStr != null && !idStr.isEmpty()) {
+                    int id = Integer.parseInt(idStr);
+                    Usuario usuario = usuarioDAO.obtenerUsuarioPorId(id); // Método para obtener el usuario
+                    request.setAttribute("usuario", usuario);
+                    request.getRequestDispatcher("/editarUsuario.jsp").forward(request, response);
+                } else {
+                    response.sendRedirect("usuarios?mensaje=ID no válido");
+                }
             } else {
-                response.sendRedirect("usuarios?mensaje=ID no válido");
+                // Listado de usuarios
+                List<Usuario> usuarios = usuarioDAO.listarUsuarios();
+                request.setAttribute("usuarios", usuarios);
+                request.getRequestDispatcher("/listarUsuarios.jsp").forward(request, response);
             }
-        } else {
-            // Listado de usuarios
-            List<Usuario> usuarios = usuarioDAO.listarUsuarios();
-            request.setAttribute("usuarios", usuarios);
-            request.getRequestDispatcher("/listarUsuarios.jsp").forward(request, response);
+        } catch (SQLException e) {
+            throw new ServletException("Error al listar o eliminar usuarios", e);
         }
-    } catch (SQLException e) {
-        throw new ServletException("Error al listar o eliminar usuarios", e);
     }
-}
-
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -52,11 +51,10 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response) t
                 String direccion = request.getParameter("direccion");
                 usuarioDAO.agregarUsuario(new Usuario(0, nombre, telefono, direccion));
                 response.sendRedirect("usuarios?mensaje=Usuario creado con éxito");
-            } else if ("actualizar".equals(action)) {
+            } else if ("editar".equals(action)) { // Cambiado de "actualizar" a "editar"
                 String idStr = request.getParameter("id");
                 if (idStr != null && !idStr.isEmpty()) {
                     int id = Integer.parseInt(idStr);
-                    
                     String nombre = request.getParameter("nombre");
                     String telefono = request.getParameter("telefono");
                     String direccion = request.getParameter("direccion");
